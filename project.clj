@@ -20,4 +20,4 @@
    :optimizations :simple
    :pretty-print true
    :src-dir "src"
-   :test-cmd ["d8" "--shell" "out/all.js"]})
+   :test-cmd ["d8" "out/all.js"]})

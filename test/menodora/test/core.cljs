@@ -10,4 +10,14 @@
   (it "should fail"
     (expect mc/= 1 2)))
 
+(binding [*print-fn* js/print]
+  (let [ts (vec (map (fn [[x y]] [x (deref y)]) @mc/tests))]
+    (println (pr-str ts))
+    (when-not (and
+                (= ["should pass" [false]]
+                   (get-in ts [0 1 0]))
+                (= ["should fail" ["Expected: 1. Actual: 2"]]
+                   (get-in ts [0 1 1])))
+      (js/quit 1))))
+
 ;;. vim: set lispwords+=describe,it,expect:
