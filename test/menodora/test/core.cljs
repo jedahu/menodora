@@ -43,7 +43,29 @@
       (should "fail"
         #(expect eq 2 3))
       (should "pass"
-        #(expect eq 9 9)))))
+        #(expect eq 9 9))))
+
+  (describe "describe exception"
+    (fn []
+      (throw "exception one")
+      (should "not be tested"
+        #(expect eq 1 1))))
+
+  (describe "should exception"
+    (fn []
+      (should "pass"
+        #(expect eq 1 1))
+      (should "throw an exception"
+        #(do
+           (throw "exception two")
+           (expect eq 1 1)))))
+
+  (describe "expect exception"
+    (fn []
+      (should "throw one exception"
+        #(do
+           (expect eq 1 (throw "not a number"))
+           (expect eq 3 3))))))
 
 (describe "test menodora"
   (fn []
@@ -67,7 +89,23 @@
             [["pass" [false]]
              ["fail" ["Expected: 2. Actual: 3."]]
              ["pass" [false]]]]
-           (nth ts 2))))))
+           (nth ts 2)))
+      (should "describe exception"
+        #(expect eq
+           ["describe exception"
+            "exception one"]
+           (nth ts 3)))
+      (should "should exception"
+        #(expect eq
+           ["should exception"
+            [["pass" [false]]
+             ["throw an exception" "exception two"]]]
+           (nth ts 4)))
+      (should "expect exception"
+        #(expect eq
+           ["expect exception"
+            [["throw one exception" "not a number"]]]
+           (nth ts 5))))))
 
 (describe "test console runner"
   (fn []
@@ -80,7 +118,7 @@
          (expect eq
            (string/join
              "\n"
-             [".FF"
+             [".FFFFF"
               "three fails"
               "  should pass fail"
               "    Pass."
@@ -94,6 +132,14 @@
               "three different"
               "  should fail"
               "    Fail. Expected: 2. Actual: 3."
+              "describe exception"
+              "  Threw: exception one"
+              "should exception"
+              "  should throw an exception"
+              "    Threw: exception two"
+              "expect exception"
+              "  should throw one exception"
+              "    Threw: not a number"
               ""])
            (apply str @strings))))
     (should "write all output"
@@ -105,7 +151,7 @@
          (expect eq
            (string/join
              "\n"
-             [".FF"
+             [".FFFFF"
               "two passes"
               "  should pass"
               "    Pass."
@@ -129,6 +175,16 @@
               "    Fail. Expected: 2. Actual: 3."
               "  should pass"
               "    Pass."
+              "describe exception"
+              "  Threw: exception one"
+              "should exception"
+              "  should pass"
+              "    Pass."
+              "  should throw an exception"
+              "    Threw: exception two"
+              "expect exception"
+              "  should throw one exception"
+              "    Threw: not a number"
               ""])
            (apply str @strings))))))
 

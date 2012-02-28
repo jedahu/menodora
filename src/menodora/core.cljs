@@ -42,11 +42,13 @@
         *tests*
         conj
         [text (delay
-                (binding [*describe-results* (atom [])]
-                  ((or before-all #()))
-                  (try (f) (catch js/Object e e))
-                  ((or after-all #()))
-                  @*describe-results*))]))))
+                (try
+                  (binding [*describe-results* (atom [])]
+                    ((or before-all #()))
+                    (f)
+                    ((or after-all #()))
+                    @*describe-results*)
+                  (catch js/Object e e)))]))))
 
 (defn ^:export run-tests
   [runner & {:keys [print-fn names finished]}]
@@ -60,7 +62,7 @@
 (defn should-succ|fail
   [[_ result]]
   (cond
-    (seq result)
+    (vector? result)
     [(count (filter not result))
      (count (filter boolean result))]
 
@@ -71,7 +73,7 @@
 (defn describe-succ|fail
   [[_ result]]
   (cond
-    (seq @result)
+    (vector? @result)
     (reduce
       (fn [[x y] [s f]]
         [(+ x s) (+ y f)])

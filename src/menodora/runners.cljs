@@ -21,16 +21,16 @@
       (println)
       (doseq [[name shoulds] (if (= :all show) @all @fail)]
         (println name)
-        (if (seq shoulds)
+        (if (vector? shoulds)
           (doseq [[text expects :as should] shoulds]
             (when (or (= :all show)
                       (< 0 (second (mc/should-succ|fail should))))
               (println "  should" text)
-              (if (seq expects)
+              (if (vector? expects)
                 (doseq [expect expects]
                   (if expect
                     (println "    Fail." expect)
                     (println "    Pass.")))
                 (println "    Threw:" expects))))
-          (println "  Threw:" should)))
+          (println "  Threw:" shoulds)))
       (count @fail))))
