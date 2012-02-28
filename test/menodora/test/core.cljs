@@ -65,7 +65,32 @@
       (should "throw one exception"
         #(do
            (expect eq 1 (throw "not a number"))
-           (expect eq 3 3))))))
+           (expect eq 3 3)))))
+
+  (let [shape (atom :line)]
+    (describe "before"
+      :before #(reset! shape :square)
+      :after #(reset! shape :line)
+      (fn []
+        (should "be square"
+          #(expect eq :square @shape))))
+
+    (describe "after"
+      (fn []
+        (should "be line"
+          #(expect eq :line @shape))))
+
+    (describe "pre"
+      :pre #(reset! shape :circle)
+      :post #(reset! shape :line)
+      (fn []
+        (should "be circle"
+          #(expect eq :circle @shape))))
+
+    (describe "post"
+      (fn []
+        (should "be line"
+          #(expect eq :line @shape))))))
 
 (describe "test menodora"
   (fn []
@@ -105,7 +130,27 @@
         #(expect eq
            ["expect exception"
             [["throw one exception" "not a number"]]]
-           (nth ts 5))))))
+           (nth ts 5)))
+      (should "before"
+        #(expect eq
+           ["before"
+            [["be square" [false]]]]
+           (nth ts 6)))
+      (should "after"
+        #(expect eq
+           ["after"
+            [["be line" [false]]]]
+           (nth ts 7)))
+      (should "pre"
+        #(expect eq
+           ["pre"
+            [["be circle" [false]]]]
+           (nth ts 8)))
+      (should "post"
+        #(expect eq
+           ["post"
+            [["be line" [false]]]]
+           (nth ts 9))))))
 
 (describe "test console runner"
   (fn []
@@ -118,7 +163,7 @@
          (expect eq
            (string/join
              "\n"
-             [".FFFFF"
+             [".FFFFF...."
               "three fails"
               "  should pass fail"
               "    Pass."
@@ -151,7 +196,7 @@
          (expect eq
            (string/join
              "\n"
-             [".FFFFF"
+             [".FFFFF...."
               "two passes"
               "  should pass"
               "    Pass."
@@ -185,6 +230,18 @@
               "expect exception"
               "  should throw one exception"
               "    Threw: not a number"
+              "before"
+              "  should be square"
+              "    Pass."
+              "after"
+              "  should be line"
+              "    Pass."
+              "pre"
+              "  should be circle"
+              "    Pass."
+              "post"
+              "  should be line"
+              "    Pass."
               ""])
            (apply str @strings))))))
 

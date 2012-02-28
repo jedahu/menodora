@@ -9,20 +9,15 @@
 
 (def ^:dynamic *describe-results*)
 
-(defn opts-body-split
-  [forms]
-  (let [[opts body] (split-with (comp not list?) forms)]
-    [(apply hash-map opts) body]))
-
 (defn should
   [text f]
   (swap! *describe-results*
          conj
          [text (try
                  (binding [*should-results* (atom [])]
-                   ((or (:before *opts*) #()))
+                   ((or (:pre *opts*) #()))
                    (f)
-                   ((or (:after *opts*) #()))
+                   ((or (:post *opts*) #()))
                    @*should-results*)
                  (catch js/Object e e))]))
 (defn expect
@@ -35,8 +30,11 @@
                 (catch js/Object e e))))
 
 (defn describe
-  [text f]
-  (let [[{:keys [before-all after-all] :as opts} body] (opts-body-split forms)]
+  [text & args]
+  (assert (odd? (count args))
+          "menodora.core/describe requires an even number of arguments")
+  (let [{:keys [before after] :as opts} (apply hash-map (butlast args))
+        f (last args)]
     (binding [*opts* opts]
       (swap!
         *tests*
@@ -44,9 +42,9 @@
         [text (delay
                 (try
                   (binding [*describe-results* (atom [])]
-                    ((or before-all #()))
+                    ((or before #()))
                     (f)
-                    ((or after-all #()))
+                    ((or after #()))
                     @*describe-results*)
                   (catch js/Object e e)))]))))
 
