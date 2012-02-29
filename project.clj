@@ -20,4 +20,4 @@
    :optimizations :simple
    :pretty-print true
    :src-dir "src"
-   :test-cmd ["d8" "out/all.js" "-e" "menodora.test.core._run_tests(quit, write)"]})
+   :test-cmd ["d8" "out/all.js" "-e" "menodora.test._run_tests(quit, write)"]})

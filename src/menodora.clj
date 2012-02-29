@@ -2,40 +2,30 @@
 
 (defn opts-body-split
   [forms]
-  (let [[opts body] (split-with (comp not list?) forms)]
-    [(apply hash-map opts) body]))
+  (loop [forms forms opts {}]
+    (if (< 2 (count forms))
+      (let [[k v & more] forms]
+        (recur more (assoc opts k `(fn [] ~v))))
+      [opts forms])))
+
+(defmacro defsuite
+  [sym & forms]
+  (let [[opts body] (opts-body-split forms)]
+    `(def ~sym
+       [(name ~sym)
+        (menodora.core/suite ~opts (fn [] ~@body))])))
 
 (defmacro describe
   [text & forms]
-  (let [[{:keys [before after] :as opts} body] (opts-body-split forms)]
-    (defmacro should
-      [text & body]
-      `(swap! menodora.core/*describe-results*
-              conj
-              [~text (try
-                       (binding [menodora.core/*should-results* (atom [])]
-                         (and ~before (apply ~before nil))
-                         ~@body
-                         (and ~after (apply ~after nil))
-                         @menodora.core/*should-results*)
-                       (catch e# js/Object e#))]))
-    (defmacro expect
-      [pred & args]
-      `(swap! menodora.core/*should-results*
-              conj (try
-                     (if ((:test ~pred) ~@args)
-                       false
-                       ((:message ~pred) ~@args))
-                     (catch e# js/Object e#))))
-    `(let [{before-all# :before-all after-all# :after-all} ~opts]
-       (swap!
-         menodora.core/*tests*
-         conj
-         [~text (delay
-                  (binding [menodora.core/*describe-results* (atom [])]
-                    (and before-all# (apply before-all# nil))
-                    (try ~@body (catch e# js/Object e#))
-                    (and after-all# (apply after-all# nil))
-                    @menodora.core/*describe-results*))]))))
+  (let [[opts body] (opts-body-split forms)]
+    `(menodora.core/describe* ~text ~opts (fn [] ~@body))))
+
+(defmacro should
+  [text & body]
+  `(menodora.core/should ~text (fn [] ~@body)))
+
+(defmacro expect
+  [pred & args]
+  `(menodora.core/expect ~pred ~@args))
 
 ;;. vim: set lispwords+=macrolet:
