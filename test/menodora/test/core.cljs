@@ -1,6 +1,6 @@
 (ns menodora.test.core
   (:use
-    [menodora.core :only (suite describe should expect)]
+    [menodora.core :only (suite describe should expect *run-opts*)]
     [menodora.predicates :only (eq)]))
 
 (def core-test-tests
@@ -93,7 +93,8 @@
      (fn []
        (describe "test menodora"
          (fn []
-           (let [ts (vec (map (fn [[x y]] [x (deref y)]) (second core-test-tests)))]
+           (let [ts (binding [*run-opts* (assoc *run-opts* :catch? true)]
+                      (vec (map (fn [[x y]] [x (y)]) (second core-test-tests))))]
              (should "two passes"
                #(expect eq
                   ["two passes"

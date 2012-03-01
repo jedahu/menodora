@@ -8,16 +8,8 @@
 (defn ^:export -run-tests
   [finished print-fn]
   (mc/run-tests
-    (fn [suites]
-      (js/print "runner...")
-      (js/print (pr-str (seq? suites)))
-      (doseq [suite suites
-              descr suite
-              [text should] descr]
-        (js/print "<" "foo" ">")
-        (js/print)
-        (js/print)))
-    ;(mr/console)
+    (mr/console)
     [tc/core-tests tr/console-runner-tests]
     :finished finished
-    :print-fn print-fn))
+    :print-fn print-fn
+    :catch? false))
