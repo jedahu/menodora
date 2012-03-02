@@ -9,23 +9,22 @@
 (def ^:dynamic *animal*)
 (def ^:dynamic *tree*)
 
-(defsuite test-macros
-  :binding [*animal* "bonobo"
-            *tree* "pine"]
-  :let [cat "lion"]
-  (describe "defsuite"
-    (should "make bindings visible"
-      (expect eq "bonobo" *animal*)
-      (expect eq "pine" *tree*)
-      (expect eq "lion" cat)))
+(defsuite macro-tests
   (describe "describe"
     :binding [*tree* "redwood"]
     :let [cat "tiger"
           tree+ (str *tree* " tree")]
-    (should "shadow suite bindings"
-      (expect eq "redwood" *tree*)
-      (expect eq "tiger" cat))
-    (should "make dynamic bindings visible to let bindings"
-      (expect eq "redwood tree" tree+))))
+    :binding [*animal* (str "indian " cat)]
+    (should "make bindings available"
+      (expect eq "tiger" cat)
+      (expect eq "redwood" *tree*))
+    (should "bind in order"
+      (expect eq "redwood tree" tree+)
+      (expect eq "indian tiger" *animal*))
+    (should "shadow describe bindings"
+      :let [cat "lion"]
+      :binding [*tree* "pine"]
+      (expect eq "pine" *tree*)
+      (expect eq "lion" cat))))
 
 ;;. vim: set lispwords+=defsuite,describe,should,expect:

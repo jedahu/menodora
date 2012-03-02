@@ -7,8 +7,11 @@
    [org.clojure/tools.macro "0.1.1"]]
   
   :dev-dependencies
-  [[lein-clojurescript "1.1.1-SNAPSHOT"]
+  [[lein-clojurescript "1.1.1"]
    [lein-repljs "0.1.2-SNAPSHOT"]]
+
+  :exclusions
+  [org.apache.ant/ant]
 
   :extra-classpath-dirs ["src"]
 

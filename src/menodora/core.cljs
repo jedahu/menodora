@@ -5,9 +5,6 @@
 
 (def ^:dynamic *descr-opts*)
 
-(def ^:dynamic *suite-opts*
-  {})
-
 (def ^:dynamic *run-opts*
   {})
 
@@ -52,11 +49,9 @@
                 (fn []
                   (binding [*descr-opts* opts
                             *describe-results* (atom [])]
-                    ((or (:pre *suite-opts*) #()))
                     ((or (:before *descr-opts*) #()))
                     (f)
                     ((or (:after *descr-opts*) #()))
-                    ((or (:post *suite-opts*) #()))
                     @*describe-results*)))))]))
 
 (defn describe
@@ -67,14 +62,10 @@
   (describe* text (apply hash-map (butlast args)) (last args)))
 
 (defn suite
-  [opts f]
-  (let [{:keys [before after]} opts]
-    (binding [*suite-opts* opts
-              *suite* (atom [])]
-      ((or before #()))
-      (f)
-      ((or after #()))
-      @*suite*)))
+  [title f]
+  [title (binding [*suite* (atom [])]
+           (f)
+           @*suite*)])
 
 (defn ^:export run-tests
   [runner suites & {:keys [print-fn finished] :or {:catch? true} :as opts}]
@@ -107,10 +98,11 @@
   (cond
     (vector? (result))
     (reduce
-      (fn [[x y] [s f]]
+      (fn [[s f] [x y]]
         (if (< 0 y)
           [s (inc f)]
           [(inc s) f]))
+      [0 0]
       (map should-succ|fail (result)))
 
     (result) [0 1]
@@ -120,6 +112,6 @@
 (defn suite-succ|fail
   [[_ result]]
   (reduce
-    (fn [[x y] [s f]]
+    (fn [[s f] [x y]]
       [(+ x s) (+ y f)])
     (map describe-succ|fail result)))

@@ -2,55 +2,49 @@
 
 (defn opts-body-split
   [forms]
-  (loop [forms forms opts {}]
-    (if (< 2 (count forms))
+  (loop [forms forms opts []]
+    (if (keyword? (first forms))
       (let [[k v & more] forms]
-        (recur more (assoc opts k
-                          (if (list? v)
-                            `(fn [] ~v)
-                            v))))
+        (recur more (conj opts
+                          k (if (list? v)
+                              `(fn [] ~v)
+                              v))))
       [opts forms])))
 
-(defmacro ?wrap-binding
-  [bindings & body]
-  (if (seq bindings)
-    `(binding ~(vec bindings) ~@body)
-    `(do ~@body)))
+(defn wrap-bindings
+  [forms & body]
+  (reduce
+    (fn [code [kind bindings]]
+      (case kind
+        :let `(let ~(vec bindings) ~code)
+        :binding `(binding ~(vec bindings) ~code)
+        code))
+    `(do ~@body)
+    (reverse (partition 2 forms))))
 
-(defmacro ?wrap-let
-  [bindings & body]
-  (if (seq bindings)
-    `(let ~(vec bindings) ~@body)
-    ~(do ~@body)))
+(defn opts-map
+  [opts]
+  (apply hash-map
+         (apply concat
+                (filter #(not (#{:let :binding} (first %)))
+                        (partition 2 opts)))))
 
 (defmacro defsuite
-  [sym & forms]
-  (let [[opts body] (opts-body-split forms)]
-    `(def ~sym
-       ~(wrap-binding
-          (:binding opts)
-          (wrap-let
-            (:let opts)
-            [`(name '~sym)
-             `(menodora.core/suite ~opts (fn [] ~@body))])))))
+  [sym & body]
+  `(def ~sym
+     (menodora.core/suite ~(name sym) (fn [] ~@body))))
 
 (defmacro describe
   [text & forms]
-  (let [[opts body] (opts-body-split forms)]
-    (wrap-binding
-      (:binding opts)
-      (wrap-let
-        (:let opts)
-        `(menodora.core/describe* ~text ~opts (fn [] ~@body))))))
+  (let [[opts body] (opts-body-split forms)
+        fbody (apply wrap-bindings opts body)]
+    `(menodora.core/describe* ~text ~(opts-map opts) (fn [] ~fbody))))
 
 (defmacro should
   [text & forms]
-  (let [[opts body] (opts-body-split forms)]
-    (wrap-binding
-      (:binding opts)
-      (wrap-let
-        (:let opts)
-        `(menodora.core/should* ~text (fn [] ~@body))))))
+  (let [[opts body] (opts-body-split forms)
+        fbody (apply wrap-bindings opts body)]
+    `(menodora.core/should ~text (fn [] ~fbody))))
 
 (defmacro expect
   [pred & args]
