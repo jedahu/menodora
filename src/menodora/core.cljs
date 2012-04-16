@@ -68,9 +68,8 @@
            @*suite*)])
 
 (defn ^:export run-tests
-  [runner suites & {:keys [print-fn finished] :or {:catch? true} :as opts}]
-  (binding [*print-fn* print-fn
-            *run-opts* opts]
+  [runner suites & {:keys [finished] :or {:catch? true} :as opts}]
+  (binding [*run-opts* opts]
     ((or finished (constantly nil))
        (runner suites))))
 

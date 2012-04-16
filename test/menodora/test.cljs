@@ -8,11 +8,15 @@
 
 (defn ^:export -run-tests
   [finished print-fn]
-  (mc/run-tests
-    (mr/console)
-    [tc/core-tests
-     tr/console-runner-tests
-     tm/macro-tests]
-    :finished finished
-    :print-fn print-fn
-    :catch? false))
+  (binding [*print-fn* print-fn]
+    (mc/run-tests
+      (mr/console)
+      [tc/core-tests
+       tr/console-runner-tests
+       tm/macro-tests]
+      :finished finished
+      :catch? false)))
+
+(defn ^:export -run-rhino
+  []
+  (-run-tests identity #(. java.lang.System/out print %)))
