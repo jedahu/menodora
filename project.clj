@@ -6,9 +6,8 @@
   [[org.clojure/clojure "1.3.0"]
    [org.clojure/tools.macro "0.1.1"]]
   
-  :dev-dependencies
-  [[lein-clojurescript "1.1.1"]
-   [lein-repljs "0.1.2-SNAPSHOT"]]
+  :plugins
+  [[lein-cst "0.1.0-SNAPSHOT"]]
 
   :exclusions
   [org.apache.ant/ant]
@@ -17,10 +16,11 @@
 
   :source-path "src"
 
-  :cljs
+  :cst
   {:output-to "out/all.js"
    :output-dir "out"
    :optimizations :simple
    :pretty-print true
    :src-dir "src"
-   :test-cmd ["d8" "out/all.js" "-e" "menodora.test._run_tests(quit, write)"]})
+   :test-cmd "menodora.test._run_rhino()"})
+   ;:test-cmd ["d8" "out/all.js" "-e" "menodora.test._run_tests(quit, write)"]})
