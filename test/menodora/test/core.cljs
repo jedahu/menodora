@@ -6,7 +6,7 @@
   (:use-macros
     [menodora :only (defsuite describe should expect)]))
 
-(defsuite core-test-tests
+#_(defsuite core-test-tests
   (describe "two passes"
     (should "pass"
       (expect eq 1 1))
@@ -67,7 +67,7 @@
   (run-tests data-runner core-test-tests
              :finish #(reset! data %) :catch? false))
 
-(defsuite core-tests
+#_(defsuite core-tests
   (describe "test core-tests"
     :let [ts (subvec @data 1)]
     (should "two passes"

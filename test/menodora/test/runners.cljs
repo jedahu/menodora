@@ -9,7 +9,7 @@
     [menodora.test.core :as tc]
     [clojure.string :as string]))
 
-(defsuite console-runner-tests
+#_(defsuite console-runner-tests
   (describe "test console runner"
     (should "write output for fails"
       (let [strings (atom [])]
