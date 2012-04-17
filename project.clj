@@ -19,8 +19,8 @@
   :cst
   {:output-to "out/all.js"
    :output-dir "out"
-   :optimizations :simple
+   :optimizations :whitespace
    :pretty-print true
    :src-dir "src"
-   :test-cmd "menodora.test._run_rhino()"})
-   ;:test-cmd ["d8" "out/all.js" "-e" "menodora.test._run_tests(quit, write)"]})
+   ;:test-cmd "menodora.test._run_rhino()"})
+   :test-cmd ["d8" "out/all.js" "-e" "menodora.test._run_tests(quit, write)"]})

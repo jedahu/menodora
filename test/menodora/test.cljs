@@ -1,22 +1,23 @@
 (ns menodora.test
   (:require
     [menodora.core :as mc]
-    [menodora.runners :as mr]
     [menodora.test.core :as tc]
     [menodora.test.runners :as tr]
-    [menodora.test.macros :as tm]))
+    [menodora.test.macros :as tm])
+  (:use
+    [menodora.runner.console :only (console-runner)]))
 
 (defn ^:export -run-tests
   [finished print-fn]
-  (binding [*print-fn* print-fn]
-    (mc/run-tests
-      (mr/console)
-      [tc/core-tests
-       tr/console-runner-tests
-       tm/macro-tests]
-      :finished finished
-      :catch? false)))
+  (set! *print-fn* print-fn)
+  (mc/run-tests
+    console-runner
+    [;tc/core-tests
+     ;tr/console-runner-tests
+     tm/macro-tests]
+    :finish finished
+    :catch? false))
 
 (defn ^:export -run-rhino
   []
-  (-run-tests identity #(. java.lang.System/out print %)))
+  (-run-tests (fn [x] (println "foo" x) "bar") #(. java.lang.System/out print %)))

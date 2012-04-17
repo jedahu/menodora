@@ -12,14 +12,14 @@
       [opts forms])))
 
 (defn wrap-bindings
-  [forms & body]
+  [forms body]
   (reduce
     (fn [code [kind bindings]]
       (case kind
         :let `(let ~(vec bindings) ~code)
         :binding `(binding ~(vec bindings) ~code)
         code))
-    `(do ~@body)
+    body
     (reverse (partition 2 forms))))
 
 (defn opts-map
@@ -29,25 +29,35 @@
                 (filter #(not (#{:let :binding} (first %)))
                         (partition 2 opts)))))
 
+(defmacro done!
+  []
+  `(menodora.core/done!))
+
 (defmacro defsuite
   [sym & body]
   `(def ~sym
-     (menodora.core/suite ~(name sym) (fn [] ~@body))))
+     (menodora.core/suite ~(name sym) ~@body)))
 
 (defmacro describe
   [text & forms]
   (let [[opts body] (opts-body-split forms)
-        fbody (apply wrap-bindings opts body)]
+        fbody (wrap-bindings opts `[~@body])]
     `(menodora.core/describe* ~text ~(opts-map opts) (fn [] ~fbody))))
 
 (defmacro should
   [text & forms]
   (let [[opts body] (opts-body-split forms)
-        fbody (apply wrap-bindings opts body)]
-    `(menodora.core/should ~text (fn [] ~fbody))))
+        fbody (wrap-bindings opts `(do ~@body))]
+    `(menodora.core/should* ~text (fn [] (do ~fbody (menodora.core/done!))))))
+
+(defmacro should*
+  [text & forms]
+  (let [[opts body] (opts-body-split forms)
+        fbody (wrap-bindings opts `(do ~@body))]
+    `(menodora.core/should* ~text (fn [] ~fbody))))
 
 (defmacro expect
   [pred & args]
   `(menodora.core/expect ~pred ~@args))
 
-;;. vim: set lispwords+=macrolet:
+;;. vim: set lispwords+=macrolet,defsuite:
