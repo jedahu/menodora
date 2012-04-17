@@ -20,7 +20,7 @@
 (defn should*
   [text f]
   (fn [opts k]
-    (let [title [(:suite opts) (:descr opts) text]]
+    (let [title [(:suite opts) (:descr opts) (str "should " text)]]
       (r/-test-start @suite-runner title)
       (f (fn []
            (r/-test-end @suite-runner title)
