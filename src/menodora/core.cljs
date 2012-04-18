@@ -5,12 +5,6 @@
 (def suite-runner
   (atom nil))
 
-(defn ?catch
-  [f]
-  (if (:catch? @run-opts)
-    (try (f) (catch js/Object e e))
-    (f)))
-
 (defn expect
   [pred & args]
   (if (apply (:test pred) args)
@@ -26,19 +20,28 @@
            (r/-test-end @suite-runner title)
            (k))))))
 
-(defn ^:export run-tests [runner tests
-                 & {:keys [finish] :or {:catch? true} :as opts}]
-  (reset! suite-runner runner)
+(defn ^:export run-tests [runner finish tests & runner-opts]
+  (reset! suite-runner (apply runner runner-opts))
   ((reduce
      (fn [k1 f]
        #(f k1))
-     #(finish (r/-finished runner))
+     #(finish (r/-finished @suite-runner))
      (reverse tests))))
 
-(defn ^:export run-suites [runner suites
-                  & {:keys [finish] :or {:catch? true} :as opts}]
-  (apply run-tests runner (apply concat suites) (apply concat opts)))
+(defn ^:export run-suites
+  [runner finish suites & runner-opts]
+  (apply run-tests
+         runner
+         finish
+         (apply concat suites)
+         runner-opts))
 
 (defn ^:export filter-tests
   [tests & names]
   (filter tests #(some (set names) (apply str (first %)))))
+
+(defn make-run-suites
+  [runner finish & {:as runner-opts}]
+  (fn [suites & {:as runner-opts1}]
+    (apply run-suites runner finish suites
+           (apply concat (merge runner-opts runner-opts1)))))

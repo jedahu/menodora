@@ -17,10 +17,37 @@
   :source-path "src"
 
   :cst
-  {:output-to "out/all.js"
-   :output-dir "out"
-   :optimizations :whitespace
-   :pretty-print true
-   :src-dir "src"
-   ;:test-cmd "menodora.test._run_rhino()"})
-   :test-cmd ["d8" "out/all.js" "-e" "menodora.test._run_tests(quit, write)"]})
+  {:src-dir "src"
+   :test-dir "test"
+   :builds
+   {:dev {:output-to ".cst-out/dev/main.js"
+          :output-dir ".cst-out/dev"
+          :optimizations nil
+          :pretty-print true
+          :src-dir "src"}
+    :single {:output-dir ".cst-out/single"
+             :optimizations :whitespace
+             :pretty-print true}
+    :small {:output-to ".cst-out/small/main.js"
+            :output-dir ".cst-out/small"
+            :optimizations :advanced
+            :pretty-print false
+            :src-dir "src"}
+    :deploy {:output-to "menodora.js"
+             :output-dir ".cst-out/deploy"
+             :optimizations :advanced
+             :pretty-print false
+             :src-dir "src"}}
+   :build :dev
+   :suites [menodora.test.macros/macro-tests]
+   :runners
+   {:rhino-console {:cljs menodora.runner.console/run-suites-rhino
+                    :proc :rhino}
+    :v8-console {:cljs menodora.runner.console/run-suites-v8
+                 :proc ["d8"]}
+    :browser-console {:cljs menodora.runner.console/run-suites-browser
+                      :clj menodora.test.server/serve-cljs}}
+   :runner :v8-console
+   :servers
+   {:test menodora.test.server/serve-cljs}
+   :server :test})

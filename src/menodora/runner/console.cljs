@@ -1,6 +1,8 @@
 (ns menodora.runner.console
   (:require
-    [menodora.runner :as r]))
+    [menodora.runner :as r])
+  (:use
+    [menodora.core :only (make-run-suites)]))
 
 (defn prind [n & args]
   (apply println
@@ -63,6 +65,39 @@
   (-unexpected [this msg args]
     (swap! (:unexpected this) conj msg)))
 
-(defn console-runner
+(defn ^:export console-runner
   [& {:as opts}]
+  (when-let [pf (:print-fn opts)]
+    (set! *print-fn* pf))
   (Console. opts (atom []) (atom #{}) (atom {}) (atom [])))
+
+(def ^:export run-suites-v8
+  (make-run-suites console-runner
+                   #(js/quit %)
+                   :print-fn #(js/write %)))
+
+(def ^:export run-suites-rhino
+  (make-run-suites console-runner
+                   identity
+                   :print-fn #(. java.lang.System/out print %)))
+
+(def ^:export run-suites-phantom
+  (make-run-suites console-runner
+                   #(. js/phantom exit %)
+                   :print-fn #(. js/console log %)))
+
+(def pre-id "menodora-runner-console")
+
+(defn browser-print-fn
+  [s]
+  (let [pre (or (. js/document getElementById pre-id)
+                (let [pre1 (. js/document createElement "pre")]
+                  (. pre1 setAttribute "id" pre-id)
+                  (.. js/document -body (appendChild pre1))
+                  pre1))]
+    (. pre appendChild (. js/document createTextNode s))))
+
+(def ^:export run-suites-browser
+  (make-run-suites console-runner
+                   identity
+                   :print-fn browser-print-fn))
