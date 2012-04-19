@@ -1,12 +1,12 @@
 (ns menodora.test.core
   (:use
-    [menodora.core :only (run-tests)]
+    [menodora.core :only (run-suites suite-runner)]
     [menodora.predicates :only (eq)]
     [menodora.runner.data :only (data-runner)])
   (:use-macros
-    [menodora :only (defsuite describe should expect)]))
+    [menodora :only (defsuite describe should should* expect)]))
 
-#_(defsuite core-test-tests
+(defsuite pass-fail-tests
   (describe "two passes"
     (should "pass"
       (expect eq 1 1))
@@ -31,90 +31,138 @@
     (should "fail"
       (expect eq 2 3))
     (should "pass"
-      (expect eq 9 9)))
+      (expect eq 9 9))))
 
-  (describe "describe exception"
-    :let [x (throw "exception one")]
-    (should "not be tested"
-      (expect eq 1 1)))
+(def after-val (atom nil))
 
-  (describe "should exception"
-    (should "pass"
-      (expect eq 1 1))
-    (should "throw an exception"
-      (throw "exception two")
-      (expect eq 1 1)))
+(defsuite opts-tests
+  (describe ":let"
+    :let [foo 9]
+    (should "make bindings available"
+      (expect eq 9 foo)))
 
-  (describe "expect exception"
-    (should "throw one exception"
-      (expect eq 1 (throw "not a number"))
-      (expect eq 3 3)))
-
-  (describe "before"
+  (describe ":before"
     :let [shape (atom :line)]
-    :before #(reset! shape :square)
-    (should "be square"
-      (expect eq :square @shape)))
+    :before (reset! shape :square)
+    (should "see bindings"
+      (expect eq :square @shape)
+      (reset! shape :triangle))
+    (should "not be called again"
+      (expect eq :triangle @shape)))
 
-  (describe "pre"
-    :let [shapte (atom :line)]
-    :pre #(reset! shape :circle)
-    (should "be circle"
-      (expect eq :circle @shape))))
+  (describe "after-val"
+    :before (reset! after-val :a)
+    :after (reset! after-val :b)
+    (should "be :a"
+      (expect eq :a @after-val)))
+  (describe ":after"
+    (should "be called after the previous 'describe'"
+      (expect eq :b @after-val)))
 
-(def data (atom nil))
-(defn run-core-tests []
-  (run-tests data-runner core-test-tests
-             :finish #(reset! data %) :catch? false))
+  (describe ":pre"
+    :let [shape (atom :line)]
+    :pre (reset! shape :circle)
+    (should "see bindings"
+      (expect eq :circle @shape)
+      (reset! shape :triangle))
+    (should "be called before every 'should'"
+      (expect eq :circle @shape)))
 
-#_(defsuite core-tests
-  (describe "test core-tests"
-    :let [ts (subvec @data 1)]
-    (should "two passes"
-      (expect eq
-        ["two passes"
-         ["pass" :pass]
-         ["pass pass" :pass :pass]]
-        (nth ts 0)))
-    (should "three fails"
-      (expect eq
-        ["three fails"
-         ["pass fail" :pass [1 2]]
-         ["fail pass" [1 2] :pass]
-         ["fail fail" [3 4] [5 6]]]
-        (nth ts 1)))
-    (should "three different"
-      (expect eq
-        ["three different"
-         ["pass" :pass]
-         ["fail" [2 3]]
-         ["pass" :pass]]
-        (nth ts 2)))
-    (should "describe exception"
-      (expect eq
-        ["describe exception"
-         "exception one"]
-        (nth ts 3)))
-    (should "should exception"
-      (expect eq
-        ["should exception"
-         [["pass" [false]]
-          ["throw an exception" "exception two"]]]
-        (nth ts 4)))
-    (should "expect exception"
-      (expect eq
-        ["expect exception"
-         [["throw one exception" "not a number"]]]
-        (nth ts 5)))
-    (should "before"
-      (expect eq
-        ["before"
-         ["be square" :pass]]
-        (nth ts 6)))
-    (should "pre"
-      (expect eq
-        ["pre"
-         ["be circle" :pass]]
-        (nth ts 7)))))
+  (describe ":post"
+    :let [shape (atom :line)]
+    :post (reset! shape :square)
+    (should "not be called before 'should'"
+      (expect eq :line @shape))
+    (should "be called after 'should'"
+      (expect eq :square @shape))))
+
+(defsuite async-tests
+  (describe "should*"
+    (should* "work"
+      (expect eq 1 1)
+      (<done>))
+    (should "call the next test"
+      (expect eq 1 1)))
+
+  (describe ":before*"
+    :let [shape (atom :line)]
+    :before* (do (reset! shape :square) (<done>))
+    (should "see bindings"
+      (expect eq :square @shape)
+      (reset! shape :triangle))
+    (should "not be called again"
+      (expect eq :triangle @shape)))
+
+  (describe "after-val"
+    :before (reset! after-val :a)
+    :after* (do (reset! after-val :b) (<done>))
+    (should "be :a"
+      (expect eq :a @after-val)))
+  (describe ":after*"
+    (should "be called after the previous 'describe'"
+      (expect eq :b @after-val)))
+
+  (describe ":pre*"
+    :let [shape (atom :line)]
+    :pre* (do (reset! shape :circle) (<done>))
+    (should "see bindings"
+      (expect eq :circle @shape)
+      (reset! shape :triangle))
+    (should "be called before every 'should'"
+      (expect eq :circle @shape)))
+
+  (describe ":post*"
+    :let [shape (atom :line)]
+    :post* (do (reset! shape :square) (<done>))
+    (should "not be called before 'should'"
+      (expect eq :line @shape))
+    (should "be called after 'should'"
+      (expect eq :square @shape))))
+
+(defsuite core-tests
+  (describe "test core tests with data-runner"
+    :let
+    [data (atom nil)
+     expected-data
+     [[["pass-fail-tests" "two passes" "pass"] :pass]
+      [["pass-fail-tests" "two passes" "pass pass"] :pass :pass]
+      [["pass-fail-tests" "three fails" "pass fail"] :pass [1 2]]
+      [["pass-fail-tests" "three fails" "fail pass"] [1 2] :pass]
+      [["pass-fail-tests" "three fails" "fail fail"] [3 4] [5 6]]
+      [["pass-fail-tests" "three different" "pass"] :pass]
+      [["pass-fail-tests" "three different" "fail"] [2 3]]
+      [["pass-fail-tests" "three different" "pass"] :pass]
+      [["opts-tests" ":let" "make bindings available"] :pass]
+      [["opts-tests" ":before" "see bindings"] :pass]
+      [["opts-tests" ":before" "not be called again"] :pass]
+      [["opts-tests" "after-val" "be :a"] :pass]
+      [["opts-tests" ":after" "be called after the previous 'describe'"] :pass]
+      [["opts-tests" ":pre" "see bindings"] :pass]
+      [["opts-tests" ":pre" "be called before every 'should'"] :pass]
+      [["opts-tests" ":post" "not be called before 'should'"] :pass]
+      [["opts-tests" ":post" "be called after 'should'"] :pass]
+      [["async-tests" "should*" "work"] :pass]
+      [["async-tests" "should*" "call the next test"] :pass]
+      [["async-tests" ":before*" "see bindings"] :pass]
+      [["async-tests" ":before*" "not be called again"] :pass]
+      [["async-tests" "after-val" "be :a"] :pass]
+      [["async-tests" ":after*" "be called after the previous 'describe'"] :pass]
+      [["async-tests" ":pre*" "see bindings"] :pass]
+      [["async-tests" ":pre*" "be called before every 'should'"] :pass]
+      [["async-tests" ":post*" "not be called before 'should'"] :pass]
+      [["async-tests" ":post*" "be called after 'should'"] :pass]]]
+
+    :before* (let [runner @suite-runner]
+               (run-suites data-runner
+                           (fn [x]
+                             (reset! data x)
+                             (reset! suite-runner runner)
+                             (<done>))
+                           [pass-fail-tests
+                            opts-tests
+                            async-tests]))
+    (should "match data structure"
+      (doseq [[expected actual] (map vector expected-data @data)]
+        (expect eq expected actual)))))
 
 ;;. vim: set lispwords+=defsuite,describe,should,should*,expect:

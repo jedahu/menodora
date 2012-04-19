@@ -38,8 +38,8 @@
              :optimizations :advanced
              :pretty-print false
              :src-dir "src"}}
-   :build :dev
-   :suites [menodora.test.macros/macro-tests]
+   :build :single
+   :suites [menodora.test.core/core-tests]
    :runners
    {:rhino-console {:cljs menodora.runner.console/run-suites-rhino
                     :proc :rhino}
@@ -47,7 +47,7 @@
                  :proc ["d8"]}
     :browser-console {:cljs menodora.runner.console/run-suites-browser
                       :clj menodora.test.server/serve-cljs}}
-   :runner :v8-console
+   :runner :rhino-console
    :servers
    {:test menodora.test.server/serve-cljs}
    :server :test})

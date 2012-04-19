@@ -18,7 +18,7 @@
 
 (defn print-text
   [text]
-  (prind 4 text))
+  (prind 4 "should" text))
 
 (defn show-all?
   [runner]
