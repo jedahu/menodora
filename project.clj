@@ -47,8 +47,11 @@
     :v8-console {:cljs menodora.runner.console/run-suites-v8
                  :proc ["d8"]}
     :browser-console {:cljs menodora.runner.console/run-suites-browser
-                      :proc menodora.server/serve-cljs}}
+                      :proc cst.server/serve-cljs}}
    :runner :rhino-console
    :servers
-   {:test menodora.server/serve-cljs}
-   :server :test})
+   {:default cst.server/serve-brepl}
+   :server :default
+   :repl-dir ".cst-repl"
+   :port 9000
+   :http 8000})
