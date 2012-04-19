@@ -6,8 +6,9 @@
 
 (defn- serve-cljs-
   [{:keys [output-dir output-to] :as build-opts}
-   & {:keys [test-uri handler] :as opts :or {test-uri "/"}}]
-  (println "running jetty..." (pr-str opts))
+   & {:keys [test-uri handler port] :as opts :or {test-uri "/" port 8765}}]
+  (println "    running jetty")
+  (println (str "    test url: http://localhost:" port test-uri))
   (jetty/run-jetty
     (fn [req]
       (cond
@@ -31,6 +32,6 @@
         
         :else
         {:status 404}))
-    {:port 8765 :join? false}))
+    {:port port :join? false}))
 
 (def serve-cljs (memoize serve-cljs-))
