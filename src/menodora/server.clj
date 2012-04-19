@@ -4,7 +4,7 @@
   (:import
     [java.io File]))
 
-(defn serve-cljs
+(defn- serve-cljs-
   [{:keys [output-dir output-to] :as opts}]
   (println "running jetty..." (pr-str opts))
   (jetty/run-jetty
@@ -27,4 +27,6 @@
         
         :else
         {:status 404}))
-    {:port 8765 :join? true}))
+    {:port 8765 :join? false}))
+
+(def serve-cljs (memoize serve-cljs-))
