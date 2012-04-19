@@ -52,8 +52,8 @@
 (defn opt-form-fn
   [[kw form]]
   `(fn [opts-unused# ~'<done>]
-     ~(if (= "*" (last (str kw)))
-        ~(verify-<done> form)
+     ~(if (= \* (last (str kw)))
+        (verify-<done> form)
         `(do ~form (~'<done>)))))
 
 (defn wrap-test-fn
@@ -83,14 +83,14 @@
         o (gensym "opts-")]
     `(fn [suite-name#]
        (fn [~k]
-         (let [~o {:descr ~text :suite suite-name#}]
+         ((let [~o {:descr ~text :suite suite-name#}]
            ~(wrap-bindings
               opts
-              `((reduce
-                  (fn [k1# f#]
-                    #(f# ~o k1#))
-                  ~k
-                  (reverse ~(vec (wrap-test-fns opts body)))))))))))
+              (reduce
+                (fn [k1 f]
+                  `(fn [] (~f ~o ~k1)))
+                k
+                (reverse (wrap-test-fns opts body))))))))))
 
 (defmacro should*
   [text & body]

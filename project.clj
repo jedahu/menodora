@@ -4,8 +4,9 @@
 
   :dependencies
   [[org.clojure/clojure "1.3.0"]
-   [org.clojure/tools.macro "0.1.1"]]
-  
+   [org.clojure/tools.macro "0.1.1"]
+   [ring/ring-jetty-adapter "1.1.0-RC1"]]
+
   :plugins
   [[lein-cst "0.1.0-SNAPSHOT"]]
 
@@ -46,8 +47,8 @@
     :v8-console {:cljs menodora.runner.console/run-suites-v8
                  :proc ["d8"]}
     :browser-console {:cljs menodora.runner.console/run-suites-browser
-                      :clj menodora.test.server/serve-cljs}}
+                      :proc menodora.server/serve-cljs}}
    :runner :rhino-console
    :servers
-   {:test menodora.test.server/serve-cljs}
+   {:test menodora.server/serve-cljs}
    :server :test})

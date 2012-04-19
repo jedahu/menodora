@@ -99,5 +99,5 @@
 
 (def ^:export run-suites-browser
   (make-run-suites console-runner
-                   identity
+                   (constantly nil)
                    :print-fn browser-print-fn))
