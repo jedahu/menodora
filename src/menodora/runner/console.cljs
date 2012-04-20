@@ -71,20 +71,32 @@
     (set! *print-fn* pf))
   (Console. opts (atom []) (atom #{}) (atom {}) (atom [])))
 
+(def global (js* "this"))
+
 (def ^:export run-suites-v8
   (make-run-suites console-runner
-                   #(js/quit %)
-                   :print-fn #(js/write %)))
+                   #((aget global "quit") %)
+                   :print-fn #((aget global "write") %)))
 
 (def ^:export run-suites-rhino
   (make-run-suites console-runner
                    identity
-                   :print-fn  #(. java.lang.System/out print %)))
+                   :print-fn #(let [out (-> global
+                                          (aget "java")
+                                          (aget "lang")
+                                          (aget "System")
+                                          (aget "out"))
+                                    print (aget out "print")]
+                                (. print call out %))))
 
 (def ^:export run-suites-phantom
   (make-run-suites console-runner
-                   #(. js/phantom exit %)
-                   :print-fn #(. js/console log %)))
+                   #(let [phantom (aget global "phantom")
+                          exit (aget phantom "exit")]
+                      (. exit call phantom %))
+                   :print-fn #(let [console (aget global "console")
+                                    log (aget console "log")]
+                                (. log call console %))))
 
 (def pre-id "menodora-runner-console")
 

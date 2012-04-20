@@ -18,19 +18,14 @@
   :source-path "src"
 
   :cst
-  {:src-dir "src"
-   :test-dir "test"
-   :build-defaults {:externs ["externs.js"]}
-   :builds
-   {:dev {:output-to ".cst-out/dev/main.js"
-          :output-dir ".cst-out/dev"
+  {:builds
+   {:dev {:output-dir ".cst-out/dev"
           :optimizations nil
           :pretty-print true}
     :single {:output-dir ".cst-out/single"
              :optimizations :whitespace
              :pretty-print true}
-    :small {:output-to ".cst-out/small/main.js"
-            :output-dir ".cst-out/small"
+    :small {:output-dir ".cst-out/small"
             :optimizations :advanced
             :pretty-print false}
     :deploy {:output-to "menodora.js"
@@ -48,10 +43,4 @@
                  :build :single}
     :browser-console {:cljs menodora.runner.console/run-suites-browser
                       :proc cst.server/serve-cljs}}
-   :runner :rhino-console
-   :servers
-   {:default cst.server/serve-brepl}
-   :server :default
-   :repl-dir ".cst-repl"
-   :port 9000
-   :http 8000})
+   :runner :rhino-console})
