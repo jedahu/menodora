@@ -79,7 +79,7 @@
 (def ^:export run-suites-rhino
   (make-run-suites console-runner
                    identity
-                   :print-fn #(. java.lang.System/out print %)))
+                   :print-fn  #(. java.lang.System/out print %)))
 
 (def ^:export run-suites-phantom
   (make-run-suites console-runner

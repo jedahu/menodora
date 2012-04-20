@@ -20,32 +20,32 @@
   :cst
   {:src-dir "src"
    :test-dir "test"
+   :build-defaults {:externs ["externs.js"]}
    :builds
    {:dev {:output-to ".cst-out/dev/main.js"
           :output-dir ".cst-out/dev"
           :optimizations nil
-          :pretty-print true
-          :src-dir "src"}
+          :pretty-print true}
     :single {:output-dir ".cst-out/single"
              :optimizations :whitespace
              :pretty-print true}
     :small {:output-to ".cst-out/small/main.js"
             :output-dir ".cst-out/small"
             :optimizations :advanced
-            :pretty-print false
-            :src-dir "src"}
+            :pretty-print false}
     :deploy {:output-to "menodora.js"
              :output-dir ".cst-out/deploy"
              :optimizations :advanced
-             :pretty-print false
-             :src-dir "src"}}
-   :build :single
+             :pretty-print false}}
+   :build :dev
    :suites [menodora.test.core/core-tests]
    :runners
    {:rhino-console {:cljs menodora.runner.console/run-suites-rhino
-                    :proc :rhino}
+                    :proc :rhino
+                    :build :single}
     :v8-console {:cljs menodora.runner.console/run-suites-v8
-                 :proc ["d8"]}
+                 :proc ["d8"]
+                 :build :single}
     :browser-console {:cljs menodora.runner.console/run-suites-browser
                       :proc cst.server/serve-cljs}}
    :runner :rhino-console
