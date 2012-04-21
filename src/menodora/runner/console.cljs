@@ -47,19 +47,17 @@
       (print-text text))
     (reset! (:unexpected this) nil))
   (-test-end [this [suite descr text :as title]]
-    (swap! (:pass-fail this)
-           update-in
-           [suite (if (seq (remove nil? @(:unexpected this))) 1 0)]
-           inc)
-    (doseq [msg @(:unexpected this)]
-      (when (or (show-all? this)
-                msg)
+    (let [fail? (seq (remove nil? @(:unexpected this)))]
+      (swap! (:pass-fail this) update-in [suite (if fail? 1 0)] inc)
+      (when (or (show-all? this) fail?)
         (?print-descr this descr)
         (when-not (show-all? this)
           (prind 4 text))
-        (if msg
-          (prind 8 "fail." msg)
-          (prind 8 "pass.")))))
+        (doseq [msg @(:unexpected this)]
+          (when (or (show-all? this) msg)
+            (if msg
+              (prind 8 "fail." msg)
+              (prind 8 "pass.")))))))
   (-expected [this]
     (swap! (:unexpected this) conj nil))
   (-unexpected [this msg args]
