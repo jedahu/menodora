@@ -45,7 +45,7 @@
     (when (show-all? this)
       (?print-descr this descr)
       (print-text text))
-    (reset! (:unexpected this) nil))
+    (reset! (:unexpected this) []))
   (-test-end [this [suite descr text :as title]]
     (let [fail? (seq (remove nil? @(:unexpected this)))]
       (swap! (:pass-fail this) update-in [suite (if fail? 1 0)] inc)
