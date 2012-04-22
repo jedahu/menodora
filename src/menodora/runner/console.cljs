@@ -87,27 +87,23 @@
                                     print (aget out "print")]
                                 (. print call out %))))
 
-(def ^:export run-suites-phantom
-  (make-run-suites console-runner
-                   #(let [phantom (aget global "phantom")
-                          exit (aget phantom "exit")]
-                      (. exit call phantom %))
-                   :print-fn #(let [console (aget global "console")
-                                    log (aget console "log")]
-                                (. log call console %))))
-
-(def pre-id "menodora-runner-console")
-
-(defn browser-print-fn
-  [s]
-  (let [pre (or (. js/document getElementById pre-id)
-                (let [pre1 (. js/document createElement "pre")]
-                  (. pre1 setAttribute "id" pre-id)
-                  (.. js/document -body (appendChild pre1))
-                  pre1))]
-    (. pre appendChild (. js/document createTextNode s))))
+(def browser-print-fn
+  (let [buffer (atom [])]
+    (fn [s]
+      (let [console (aget global "console")
+            log (aget console "log")]
+        (swap! buffer
+               (fn [buf]
+                 (if (= \newline (last s))
+                   (do
+                     (. log call console
+                        (apply str (conj buf (apply str (butlast s)))))
+                     [])
+                   (conj buf s))))))))
 
 (def ^:export run-suites-browser
   (make-run-suites console-runner
-                   (constantly nil)
+                   #(.. js/document
+                      -body
+                      (setAttribute "data-menodora-final-fail-count" %))
                    :print-fn browser-print-fn))
