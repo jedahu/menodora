@@ -54,10 +54,9 @@
         (when-not (show-all? this)
           (prind 4 text))
         (doseq [msg @(:unexpected this)]
-          (when (or (show-all? this) msg)
-            (if msg
-              (prind 8 "fail." msg)
-              (prind 8 "pass.")))))))
+          (if msg
+            (prind 8 "fail." msg)
+            (prind 8 "pass."))))))
   (-expected [this]
     (swap! (:unexpected this) conj nil))
   (-unexpected [this msg args]
