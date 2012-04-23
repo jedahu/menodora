@@ -1,5 +1,5 @@
 (defproject
-  menodora "0.1.3-SNAPSHOT"
+  menodora "0.1.3"
   :description "Jasmine-like test library for clojurescript."
 
   :dependencies
