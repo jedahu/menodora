@@ -13,3 +13,7 @@
   {:test #(= %1 (type %2))
    :message #(str "Expected type: " %1
                   ". Actual type: " %2)})
+
+(def is-a
+  {:test instance?
+   :message #(str %2 " not an instance of " %1 ".")})
