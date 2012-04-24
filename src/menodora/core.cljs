@@ -30,11 +30,15 @@
 
 (defn ^:export run-suites
   [runner finish suites & runner-opts]
-  (apply run-tests
-         runner
-         finish
-         (apply concat suites)
-         runner-opts))
+  (try
+    (apply run-tests
+           runner
+           finish
+           (apply concat suites)
+           runner-opts)
+    (catch js/Object e
+      (println "Exception!" e)
+      -1)))
 
 (defn ^:export filter-tests
   [tests & names]
