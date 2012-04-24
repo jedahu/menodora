@@ -72,12 +72,19 @@
 
 (def ^:export run-suites-v8
   (make-run-suites console-runner
-                   #((aget global "quit") %)
+                   #((aget global "quit")
+                       (if (integer? %)
+                         %
+                         (do
+                           (println "Exception!" (. e -stack))
+                           -1)))
                    :print-fn #((aget global "write") %)))
 
 (def ^:export run-suites-rhino
   (make-run-suites console-runner
-                   identity
+                   #(if (integer? %)
+                      %
+                      (throw %))
                    :print-fn #(let [out (-> global
                                           (aget "java")
                                           (aget "lang")
@@ -104,5 +111,11 @@
   (make-run-suites console-runner
                    #(.. js/document
                       -body
-                      (setAttribute "data-menodora-final-fail-count" %))
+                      (setAttribute
+                        "data-menodora-final-fail-count"
+                        (if (integer? %)
+                          %
+                          (do
+                            (println "Exception!" (. % -stack))
+                            -1))))
                    :print-fn browser-print-fn))

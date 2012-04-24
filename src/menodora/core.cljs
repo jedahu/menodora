@@ -20,25 +20,24 @@
            (r/-test-end @suite-runner title)
            (k))))))
 
-(defn ^:export run-tests [runner finish tests & runner-opts]
+(defn run-tests [runner tests & runner-opts]
   (reset! suite-runner (apply runner runner-opts))
   ((reduce
      (fn [k1 f]
        #(f k1))
-     #(finish (r/-finished @suite-runner))
+     #(r/-finished @suite-runner)
      (reverse tests))))
 
 (defn ^:export run-suites
   [runner finish suites & runner-opts]
-  (try
-    (apply run-tests
-           runner
-           finish
-           (apply concat suites)
-           runner-opts)
-    (catch js/Object e
-      (println "Exception!" e)
-      -1)))
+  (finish
+    (try
+      (apply run-tests
+             runner
+             (apply concat suites)
+             runner-opts)
+      (catch js/Object e
+        e))))
 
 (defn ^:export filter-tests
   [tests & names]
