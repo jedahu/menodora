@@ -47,7 +47,7 @@
   (spit "/tmp/flat" (pr-str (rflatten form)))
   (if (some #{'<done>} (rflatten form))
     form
-    (throw (Error. "form must include a call to <done>:" (pr-str form)))))
+    (throw (Error. (str "form must include a call to <done>: " (pr-str form))))))
 
 (defn opt-form-fn
   [[kw form]]
