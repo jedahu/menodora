@@ -1,6 +1,6 @@
 (ns menodora.test.core
   (:use
-    [menodora.core :only (run-suites suite-runner)]
+    [menodora.core :only (run-suites suite-runner test-seq)]
     [menodora.predicates :only (eq)]
     [menodora.runner.data :only (data-runner)])
   (:use-macros
@@ -119,50 +119,59 @@
     (should "be called after 'should'"
       (expect eq :square @shape))))
 
-(defsuite core-tests
-  (describe "test core tests with data-runner"
-    :let
-    [data (atom nil)
-     expected-data
-     [[["pass-fail-tests" "two passes" "pass"] :pass]
-      [["pass-fail-tests" "two passes" "pass pass"] :pass :pass]
-      [["pass-fail-tests" "three fails" "pass fail"] :pass [1 2]]
-      [["pass-fail-tests" "three fails" "fail pass"] [1 2] :pass]
-      [["pass-fail-tests" "three fails" "fail fail"] [3 4] [5 6]]
-      [["pass-fail-tests" "three different" "pass"] :pass]
-      [["pass-fail-tests" "three different" "fail"] [2 3]]
-      [["pass-fail-tests" "three different" "pass"] :pass]
-      [["opts-tests" ":let" "make bindings available"] :pass]
-      [["opts-tests" ":before" "see bindings"] :pass]
-      [["opts-tests" ":before" "not be called again"] :pass]
-      [["opts-tests" "after-val" "be :a"] :pass]
-      [["opts-tests" ":after" "be called after the previous 'describe'"] :pass]
-      [["opts-tests" ":pre" "see bindings"] :pass]
-      [["opts-tests" ":pre" "be called before every 'should'"] :pass]
-      [["opts-tests" ":post" "not be called before 'should'"] :pass]
-      [["opts-tests" ":post" "be called after 'should'"] :pass]
-      [["async-tests" "should*" "work"] :pass]
-      [["async-tests" "should*" "call the next test"] :pass]
-      [["async-tests" ":before*" "see bindings"] :pass]
-      [["async-tests" ":before*" "not be called again"] :pass]
-      [["async-tests" "after-val" "be :a"] :pass]
-      [["async-tests" ":after*" "be called after the previous 'describe'"] :pass]
-      [["async-tests" ":pre*" "see bindings"] :pass]
-      [["async-tests" ":pre*" "be called before every 'should'"] :pass]
-      [["async-tests" ":post*" "not be called before 'should'"] :pass]
-      [["async-tests" ":post*" "be called after 'should'"] :pass]]]
+(def global (js* "this"))
 
-    :before* (let [runner @suite-runner]
-               (run-suites data-runner
-                           (fn [x]
-                             (reset! data x)
-                             (reset! suite-runner runner)
-                             (<done>))
-                           [pass-fail-tests
-                            opts-tests
-                            async-tests]))
-    (should "match data structure"
-      (doseq [[expected actual] (map vector expected-data @data)]
-        (expect eq expected actual)))))
+(defn test-menodora
+  [_suites]
+  (set! *print-fn* #(let [out (-> global
+                                (aget "java")
+                                (aget "lang")
+                                (aget "System")
+                                (aget "out"))
+                          print (aget out "print")]
+                      (. print call out %)))
+  (let [expected-data
+        [[["pass-fail-tests" "two passes" "pass"] :pass]
+         [["pass-fail-tests" "two passes" "pass pass"] :pass :pass]
+         [["pass-fail-tests" "three fails" "pass fail"] :pass [1 2]]
+         [["pass-fail-tests" "three fails" "fail pass"] [1 2] :pass]
+         [["pass-fail-tests" "three fails" "fail fail"] [3 4] [5 6]]
+         [["pass-fail-tests" "three different" "pass"] :pass]
+         [["pass-fail-tests" "three different" "fail"] [2 3]]
+         [["pass-fail-tests" "three different" "pass"] :pass]
+         [["opts-tests" ":let" "make bindings available"] :pass]
+         [["opts-tests" ":before" "see bindings"] :pass]
+         [["opts-tests" ":before" "not be called again"] :pass]
+         [["opts-tests" "after-val" "be :a"] :pass]
+         [["opts-tests" ":after" "be called after the previous 'describe'"] :pass]
+         [["opts-tests" ":pre" "see bindings"] :pass]
+         [["opts-tests" ":pre" "be called before every 'should'"] :pass]
+         [["opts-tests" ":post" "not be called before 'should'"] :pass]
+         [["opts-tests" ":post" "be called after 'should'"] :pass]
+         [["async-tests" "should*" "work"] :pass]
+         [["async-tests" "should*" "call the next test"] :pass]
+         [["async-tests" ":before*" "see bindings"] :pass]
+         [["async-tests" ":before*" "not be called again"] :pass]
+         [["async-tests" "after-val" "be :a"] :pass]
+         [["async-tests" ":after*" "be called after the previous 'describe'"] :pass]
+         [["async-tests" ":pre*" "see bindings"] :pass]
+         [["async-tests" ":pre*" "be called before every 'should'"] :pass]
+         [["async-tests" ":post*" "not be called before 'should'"] :pass]
+         [["async-tests" ":post*" "be called after 'should'"] :pass]]]
+    (run-suites data-runner
+                (fn [data]
+                  (let [res (for [[expected actual]
+                                  (map vector expected-data data)]
+                              (or (= expected actual)
+                                  (println
+                                    "fail. Expected: " (pr-str expected)
+                                    ". Actual: " (pr-str actual) ".")))
+                        p (count (filter boolean res))
+                        f (count (filter nil? res))]
+                    (println "pass fail" p f)
+                    (count (filter nil? res))))
+                [pass-fail-tests
+                 opts-tests
+                 async-tests])))
 
 ;;. vim: set lispwords+=defsuite,describe,should,should*,expect:

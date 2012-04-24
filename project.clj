@@ -3,12 +3,11 @@
   :description "Jasmine-like test library for clojurescript."
 
   :dependencies
-  [[org.clojure/clojure "1.3.0"]
-   [org.clojure/tools.macro "0.1.1"]
-   [ring/ring-jetty-adapter "1.1.0-RC1"]]
+  [[org.clojure/clojure "1.4.0"]
+   [ring/ring-jetty-adapter "1.1.0"]]
 
   :plugins
-  [[lein-cst "0.2.1"]]
+  [[lein-cst "0.2.4"]]
 
   :exclusions
   [org.apache.ant/ant]
@@ -18,4 +17,8 @@
   :source-path "src"
 
   :cst
-  {:suites [menodora.test.core/core-tests]})
+  {:runners
+   {:console-rhino {:cljs menodora.test.core/test-menodora
+                    :proc :rhino
+                    :build :single}}
+   :runner :console-rhino})
