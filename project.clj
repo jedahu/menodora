@@ -7,7 +7,7 @@
    [ring/ring-jetty-adapter "1.1.0"]]
 
   :plugins
-  [[lein-cst "0.2.4"]]
+  [[lein-cst "0.2.5"]]
 
   :exclusions
   [org.apache.ant/ant]
@@ -21,4 +21,6 @@
    {:console-rhino {:cljs menodora.test.core/test-menodora
                     :proc :rhino
                     :build :single}}
-   :runner :console-rhino})
+   :runner :console-rhino}
+
+  :min-lein-version "2.0.0")
